@@ -9,10 +9,7 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   disableMobile: true,
-  onClose(selectedDates) {
-    // if (options.defaultDate.getTime() > selectedDates[0]) {
-    //   return Notiflix.Notify.failure('Please choose a date in the future');
-    // }
+  onClose(selectedDates) {    
     if (dateChecker(selectedDates[0], options.defaultDate.getTime())) {
       return;
     }
@@ -101,7 +98,7 @@ class Timer {
 }
 const timer = new Timer({ onTick: updateClockface });
 
-function updateClockface({ days = 0, hours = 0, minutes = 0, seconds = 0 }) {
+function updateClockface({ days, hours, minutes, seconds}) {
   refs.days.textContent = this.addLeadingZero(days);
   refs.hours.textContent = this.addLeadingZero(hours);
   refs.minutes.textContent = this.addLeadingZero(minutes);
@@ -114,7 +111,7 @@ function dateChecker(targetDate, currentDate) {
     Math.floor(targetDate * multiplier) < Math.floor(currentDate * multiplier)
   ) {
     if (!refs.btn.hasAttribute('disabled')) {
-      refs.btn.setAttribute('disabled', '');
+      refs.btn.disabled = true;
     }
     Notiflix.Notify.failure('Please choose a date in the future');
     return true;
