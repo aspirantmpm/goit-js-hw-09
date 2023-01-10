@@ -1,7 +1,6 @@
 import Notiflix from 'notiflix';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
-import '../css/common.css';
 
 const options = {
   enableTime: true,
@@ -9,13 +8,13 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   disableMobile: true,
-  onClose(selectedDates) {    
+  onClose(selectedDates) {
     if (dateChecker(selectedDates[0], options.defaultDate.getTime())) {
       return;
     }
 
     targetTime = selectedDates[0].getTime();
-    refs.btn.removeAttribute('disabled');
+    refs.btn.disabled = false;
   },
 };
 
@@ -29,10 +28,10 @@ const refs = {
   seconds: document.querySelector('[data-seconds]'),
 };
 
-refs.input.addEventListener('focus', onFocus);
 refs.btn.addEventListener('click', onClick);
-refs.btn.setAttribute('disabled', '');
+refs.btn.disabled = true;
 
+const fp = flatpickr(refs.input, options);
 let targetTime = null;
 
 class Timer {
@@ -45,14 +44,16 @@ class Timer {
   }
 
   start() {
-    refs.btn.setAttribute('disabled', '');
-    refs.input.setAttribute('disabled', '');
+    refs.btn.disabled = true;
+    refs.input.disabled = true;
     Notiflix.Notify.success(this.startMessage);
 
     this.intervalId = setInterval(() => {
       const currentDate = Date.now();
 
-      this.isCountdownOver(targetTime, currentDate);
+      if (this.isCountdownOver(targetTime, currentDate)) {
+        return;
+      }
       this.onTick(this.convertMs(targetTime - currentDate));
     }, this.intervalTime);
   }
@@ -60,7 +61,7 @@ class Timer {
   stop() {
     clearInterval(this.intervalId);
     Notiflix.Notify.info(this.endMessage);
-    refs.input.removeAttribute('disabled');
+    refs.input.disabled = false;
   }
 
   isCountdownOver(targetDate, currentDate) {
@@ -70,8 +71,7 @@ class Timer {
       Math.floor(currentDate * multiplier)
     ) {
       this.stop();
-      this.onTick();
-      return;
+      return true;
     }
   }
 
@@ -98,7 +98,7 @@ class Timer {
 }
 const timer = new Timer({ onTick: updateClockface });
 
-function updateClockface({ days, hours, minutes, seconds}) {
+function updateClockface({ days, hours, minutes, seconds }) {
   refs.days.textContent = this.addLeadingZero(days);
   refs.hours.textContent = this.addLeadingZero(hours);
   refs.minutes.textContent = this.addLeadingZero(minutes);
@@ -116,10 +116,6 @@ function dateChecker(targetDate, currentDate) {
     Notiflix.Notify.failure('Please choose a date in the future');
     return true;
   }
-}
-
-function onFocus() {
-  flatpickr(refs.input, options);
 }
 
 function onClick() {
